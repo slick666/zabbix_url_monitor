@@ -26,10 +26,16 @@ def run_command(command):
     return (rc, streamdata)
 
 
+# TODO: fill in documentation block below
 def skip_on_external_condition(logging, condition, argv):
     """
     Checks and skips execution if a shell command, env var, or puppet fact
     returns true if we should skip
+
+    :param logging:
+    :param condition:
+    :param argv:
+    :return:
     """
     skip_summary = ", skipping execution due to config option."
     if condition == "facter":
@@ -40,13 +46,14 @@ def skip_on_external_condition(logging, condition, argv):
         facter = Facter(facter_path=facter_binpath)
         real_value = facter.get(fact_condition)
         if value_condition == real_value:
-            logging.warn("Warning: {bin} value {{:{fact} => \"{val}\"}},"
-                         " skipping execution due to config option.".format(
-                             bin=facter_binpath,
-                             fact=fact_condition,
-                             val=value_condition
-                         )
-                         )
+            logging.warn(
+                "Warning: {bin} value {{:{fact} => \"{val}\"}},"
+                " skipping execution due to config option.".format(
+                    bin=facter_binpath,
+                    fact=fact_condition,
+                    val=value_condition,
+                )
+            )
             return True
 
     elif condition == "shell":
@@ -57,43 +64,50 @@ def skip_on_external_condition(logging, condition, argv):
         rc, data = run_command(script)
 
         if data.strip() == stdout:
-            logging.warn("Warning: shell `{sh}` stdout was"
-                         " `{val}`{fin}".format(
-                             sh=script,
-                             val=stdout,
-                             fin=skip_summary
-                         )
-                         )
+            logging.warn(
+                "Warning: shell `{sh}` stdout was `{val}`{fin}".format(
+                    sh=script,
+                    val=stdout,
+                    fin=skip_summary,
+                )
+            )
             return True
         if expect_code == rc:
-            logging.warn("Warning: shell `{sh}` return code"
-                         " was `{code}`{fin}".format(
-                             sh=script,
-                             code=expect_code,
-                             fin=skip_summary
-                         )
-                         )
+            logging.warn(
+                "Warning: shell `{sh}` return code was `{code}`{fin}".format(
+                    sh=script,
+                    code=expect_code,
+                    fin=skip_summary
+                )
+            )
             return True
     elif condition == "env":
         shellvar = argv[0]
         expected_value = argv[1]
 
         if environ.get(shellvar) == expected_value:
-            logging.warn("Warning: Bash environment has export"
-                         " {env}=\"{val}\"`{fin}".format(
-                             env=shellvar,
-                             val=expected_value,
-                             fin=skip_summary
-                         )
-                         )
+            logging.warn(
+                "Warning: Bash environment has export "
+                "{env}=\"{val}\"`{fin}".format(
+                        env=shellvar,
+                        val=expected_value,
+                        fin=skip_summary
+                    )
+            )
             return True
     return False
 
+
+# TODO: fill in documentation block below
 def get_hostport_tuple(dport, dhost):
     """
     Tool to take a hostport combination 'localhost:22' string
     and return a tuple ('localhost', 22). If no : seperator
     is given then assume a default port passed as argv1
+
+    :param dport:
+    :param dhost:
+    :return:
     """
     # Detect if port is designated
     if ":" in dhost:
@@ -104,26 +118,24 @@ def get_hostport_tuple(dport, dhost):
         return dhost, dport
 
 
-def string2bool(allegedstring):
+# TODO: fill in documentation block below
+def string_to_bool(input_string):
     """
     Tries to return a boolean from a string input if possible,
     else it just returns the original item, allegedly a string.
+
+    :param input_string:
+    :return:
     """
-    if allegedstring.lower().startswith('t'):
-        return True
-    elif allegedstring.lower().startswith('f'):
-        return False
-    elif allegedstring == "1":
-        return True
-    elif allegedstring == "0":
-        return False
-    else:
-        return allegedstring
+
+    return input_string.lower() in ['t', 'true', '1']
 
 
+# TODO: fill in documentation block below
 def omnipath(data_object, type, element, throw_error_or_mark_none='none'):
     """
     Used to pull path expressions out of json or java path.
+
     :param data_object:
     :param type:
     :param element:
@@ -152,17 +164,20 @@ class WebCaller(object):
     Performs web functions for API's we're running check"s on
     """
 
+    # TODO: fill in documentation block below
     def __init__(self, logging):
         """
         Initialize web instance.
         Bring logging instance in.
         Set session.auth and session_headers to none by default
+        :param logging:
         """
         self.logging = logging
 
         self.session = None
         self.session_headers = None
 
+    # TODO: fill in documentation block below
     def auth(self, config, identity_provider):
         """
         Start a requests session with this instance.
@@ -175,9 +190,9 @@ class WebCaller(object):
         try:
             identity_provider = identity_providers[identity_provider]
             auth_kwargs = identity_provider.values()[0]
-        except KeyError, err:
-            error =  """KeyError {err} defined in testSet as identity_provider
-            but is undeclared in identity_providers!""".format(err=err)
+        except KeyError as err:
+            error = ("KeyError {err} defined in test_set as identity_provider "
+                     "but is undeclared in identity_providers!").format(err=err)
             self.logging.exception(error)
 
         # If provider is undefined, we get TypeError
@@ -209,17 +224,19 @@ class WebCaller(object):
             # requests_python_module/requestAuthClassname from the config entry
             # Split the / to determine import statements t.
             try:
-                module_strname = [x for x in identity_provider][
-                    0].split('/')[0]
+                module_strname = [
+                    x for x in identity_provider
+                    ][0].split('/')[0]
                 class_strname = [x for x in identity_provider][
                     0].split('/')[1]
-            except IndexError, err:
-                error = "IndexError {err} {provider_name} is incomplete "
-                " missing '/' char to seperate Module_Name from "
-                " Class_Namebut is undeclared in identity_providers!".format(
-                    err=err,
-                    provider_name=provider_name
-                )
+            except IndexError as err:
+                error = (
+                    "IndexError {err} {provider_name} is incomplete "
+                    "missing '/' char to seperate Module_Name from "
+                    "Class_Namebut is undeclared in identity_providers!").format(
+                        err=err,
+                        provider_name=provider_name
+                    )
                 self.logging.exception(error)
 
             # Try to import the specified module
@@ -269,16 +286,18 @@ class WebCaller(object):
             # Debug message
             self.logging.debug("Spawn session.auth {pyobject}"
                                " with kwargs {arglst} ".format(
-                                   pyobject=self.session.auth,
-                                   arglst=filtered_kwargs
-                               )
-                               )
+                pyobject=self.session.auth,
+                arglst=filtered_kwargs
+            )
+            )
 
+    # TODO: fill in documentation block below
     def run(self, config, url, verify, expected_http_status, identity_provider,
             timeout):
         """
         Executes a http request to gather the data.
         expected_http_status can be a list of expected codes.
+
         :param config:
         :param url:
         :param verify:
@@ -297,21 +316,23 @@ class WebCaller(object):
                 verify=verify,
                 timeout=timeout
             )
-            self.logging.debug("Spawn request {pyobject} url={url}"
-                               " headers={head}".format(
-                                   pyobject=request,
-                                   head=self.session_headers,
-                                   url=url
-                               )
-                               )
+            self.logging.debug(
+                "Spawn request {pyobject} url={url} headers={head}".format(
+                    pyobject=request,
+                    head=self.session_headers,
+                    url=url
+                )
+            )
         except requests.exceptions.ConnectTimeout as e:
             err = "requests.exceptions.ConnectTimeout: {e}".format(e=e)
             self.logging.exception(err)
             return False
+
         except requests.exceptions.RequestException as e:
             err = "requests.exceptions.RequestException: {e}".format(e=e)
             self.logging.exception(err)
             return False
+
         except:
             err = "Unhandled requests exception occured during web_request()"
             self.logging.exception(err)

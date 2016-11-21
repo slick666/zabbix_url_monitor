@@ -36,6 +36,7 @@ def return_epilog():
     )
 
 
+# TODO: fill in documentation block below
 def main(arguments=None):
     """
     Program entry point.
@@ -72,31 +73,31 @@ def main(arguments=None):
         "-k",
         nargs='?',
         default=None,
-        help="Optional with `check` command. Can be used to run checks on"
-        " a limited subset of item headings under testSet from the yaml "
-        "config."
+        help="Optional with `check` command. Can be used to run checks on "
+             "a limited subset of item headings under testSet from the yaml "
+             "config."
     )
     arg_parser.add_argument(
         "--datatype",
         "-t",
         nargs='?',
         default=None,
-        help="Required with `discover` command. This filters objects from"
-        " the config that have a particular datatype. This data is used by"
-        " low level discovery in Zabbix."
+        help="Required with `discover` command. This filters objects from "
+             "the config that have a particular datatype. This data is used by "
+             "low level discovery in Zabbix."
     )
     arg_parser.add_argument(
         "-c",
         "--config",
         default=None,
         help="Specify custom config file, system default /etc/url_monitor."
-        "yaml"
+             "yaml"
     )
     arg_parser.add_argument(
         "--loglevel",
         default=None,
-        help="Specify custom loglevel override. Available options [debug,"
-        " info, wrna, critical, error, exceptions]"
+        help="Specify custom loglevel override. Available options [debug, "
+             "info, wrna, critical, error, exceptions]"
     )
 
     inputflag = arg_parser.parse_args(args=arguments)
@@ -116,8 +117,8 @@ def main(arguments=None):
     if inputflag.COMMAND == "discover":
         conditional_skip_queue = []  # no need to disable this
     if len(conditional_skip_queue) > 0:
-        logger.info("Checking {0} standby conditions to see if test execution"
-                    " should skip.".format(len(conditional_skip_queue)))
+        logger.info("Checking {0} standby conditions to see if test execution  "
+                    "should skip.".format(len(conditional_skip_queue)))
     for test in conditional_skip_queue:
         for condition, condition_args in test.items():
             if commons.skip_on_external_condition(
@@ -148,8 +149,8 @@ def main(arguments=None):
             completed_runs = []  # check results
             for checkitem in config['checks']:
                 try:
-                    if (inputflag.key is not None and
-                            checkitem['key'] == inputflag.key):
+                    if all([inputflag.key is not None,
+                            checkitem['key'] == inputflag.key]):
                         # --key defined and name matched! only run 1 check
                         rc, checkobj = action.check(
                             checkitem, configinstance, logger
@@ -208,7 +209,7 @@ def main(arguments=None):
             )]
 
             logger.debug("Summary: {0}".format(check_completion_status))
-            if not action.transmitfacade(config, check_completion_status, logger=logger):
+            if not action.transmit_facade(config, check_completion_status, logger=logger):
                 logger.critical(
                     "Sending execution summary to zabbix server failed!")
                 set_rc = 1
@@ -225,6 +226,7 @@ def main(arguments=None):
 def entry_point():
     """Zero-argument entry point for use with setuptools/distribute."""
     raise SystemExit(main(sys.argv))
+
 
 if __name__ == "__main__":
     entry_point()

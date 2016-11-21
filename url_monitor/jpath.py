@@ -7,6 +7,7 @@ CURRENT_NODE = '.'
 LIST_INDEX_INDICATORS = ('[', ']')
 
 
+# TODO: fill in documentation block below
 def jpath(json_str, path, throw_error_or_mark_none='none'):
     """
 

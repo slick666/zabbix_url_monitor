@@ -11,8 +11,11 @@ except:
     import simplejson as json
 
 
+# TODO: fill in documentation block below
 class Metric(object):
+    """
 
+    """
     def __init__(self, host, key, value, clock=None):
         self.host = host
         self.key = key
@@ -22,12 +25,18 @@ class Metric(object):
     def __repr__(self):
         if self.clock is None:
             return 'Metric(%r, %r, %r)' % (self.host, self.key, self.value)
-        return 'Metric(%r, %r, %r, %r)' % (self.host, self.key, self.value, self.clock)
+
+        return 'Metric(%r, %r, %r, %r)' % (
+            self.host, self.key, self.value, self.clock
+        )
 
 
-def send_to_zabbix(logger, metrics, zabbix_host='127.0.0.1', zabbix_port=10051, timeout=15):
+# TODO: fill in documentation block below
+def send_to_zabbix(logger, metrics, zabbix_host='127.0.0.1',
+                   zabbix_port=10051, timeout=15):
     """
     Send set of metrics to Zabbix server.
+
     :param: logger:
     :param metrics:
     :param zabbix_host:
@@ -36,17 +45,23 @@ def send_to_zabbix(logger, metrics, zabbix_host='127.0.0.1', zabbix_port=10051, 
     :return:
     """
 
-    j = json.dumps
+    jason_dump = json.dumps
     # Zabbix has very fragile JSON parser, and we cannot use json to dump
     # whole packet
     metrics_data = []
-    for m in metrics:
-        clock = m.clock or time.time()
-        metrics_data.append(('\t\t{\n'
-                             '\t\t\t"host":%s,\n'
-                             '\t\t\t"key":%s,\n'
-                             '\t\t\t"value":%s,\n'
-                             '\t\t\t"clock":%s}') % (j(m.host), j(m.key), j(m.value), clock))
+    for metric in metrics:
+        # TODO: should time.time be time.now()?
+        clock = metric.clock or time.time()
+        metrics_data.append(
+            ('\t\t{\n'
+             '\t\t\t"host":%s,\n'
+             '\t\t\t"key":%s,\n'
+             '\t\t\t"value":%s,\n'
+             '\t\t\t"clock":%s}').format(
+                host=jason_dump(metric.host),
+                key=jason_dump(metric.key),
+                value=jason_dump(metric.value),
+                clock=clock))
     json_data = ('{\n'
                  '\t"request":"sender data",\n'
                  '\t"data":[\n%s]\n'
@@ -84,6 +99,7 @@ def send_to_zabbix(logger, metrics, zabbix_host='127.0.0.1', zabbix_port=10051, 
         return False
     finally:
         zabbix.close()
+
 
 logger = logging.getLogger('zbxsender')
 

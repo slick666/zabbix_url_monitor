@@ -10,20 +10,23 @@ import zbxsend
 __doc__ = """Action on backends after entry points are handled in main"""
 
 
-def webfacade(testSet, configinstance, webcaller, config):
+# TODO: fill in documentation block below
+def web_facade(test_set, config_instance, webcaller, config):
     """
     Perform the web request for a check.
     (Called upon by check())
 
-    :param testSet: Name of testset to pull values
-    :param configinstance: config class object
-    :return requests output:
+    :param test_set:
+    :param config_instance:
+    :param webcaller:
+    :param config:
+    :return:
     """
 
     # config getters
-    tmout = configinstance.get_request_timeout(testSet)
-    vfyssl = configinstance.get_verify_ssl(testSet)
-    testset = configinstance.get_test_set(testSet)
+    tmout = config_instance.get_request_timeout(test_set)
+    vfyssl = config_instance.get_verify_ssl(test_set)
+    testset = config_instance.get_test_set(test_set)
 
     # dispatch request
     out = webcaller.run(config,
@@ -35,29 +38,34 @@ def webfacade(testSet, configinstance, webcaller, config):
                             'data']['identity_provider'],
                         timeout=tmout)
 
-    if out == False:  # webcaller.run has requests.exceptions
-        logging.error("Spawn request failed, skipping."
-                      " url={0}".format(testset['data']['uri']))
+    if out is False:  # webcaller.run has requests.exceptions
+        logging.error(
+            "Spawn request failed, skipping. url={0}".format(
+                testset['data']['uri']
+            )
+        )
         return False
     else:  # it works!
         logging.debug("Spawn request OK (at webfacade)")
         return out
 
 
-def transmitfacade(configinstance, metrics, logger):
+# TODO: fill in documentation block below
+def transmit_facade(config_instance, metrics, logger):
     """
     Send a list of Metric objects to zabbix.
     Called by check()
 
-    param configinstance: The current configinstance object
-    param metrics: list of Metrics for zbxsend
-    Returns True if succcess.
+    :param config_instance:
+    :param metrics:
+    :param logger:
+    :return:
     """
     constant_zabbix_port = 10051
     try:
         z_host, z_port = commons.get_hostport_tuple(
             constant_zabbix_port,
-            configinstance['config']['zabbix']['server']
+            config_instance['config']['zabbix']['server']
         )
     except:
         logging.error('Could not reference config: zabbix: server in conf')
@@ -65,8 +73,9 @@ def transmitfacade(configinstance, metrics, logger):
 
     try:
         # Assume 30.0 if key is empty
-        timeout = float(configinstance['config'][
-            'zabbix'].get('send_timeout', 30.0))
+        timeout = float(
+            config_instance['config']['zabbix'].get('send_timeout', 30.0)
+        )
     except:
         logging.error("Could not reference config: zabbix entry in conf")
         return False
@@ -79,7 +88,11 @@ def transmitfacade(configinstance, metrics, logger):
     )
     logging.info(
         "{m} host {zbxhost}:{zbxport}".format(
-            m=msg, metrics=metrics, zbxhost=z_host, zbxport=z_port, logger=logger
+            m=msg,
+            metrics=metrics,
+            zbxhost=z_host,
+            zbxport=z_port,
+            logger=logger
         )
     )
 
@@ -93,30 +106,34 @@ def transmitfacade(configinstance, metrics, logger):
             logger=logger
         )
     except:
-        logging.debug("event.send_to_zabbix({0},{1},{2},{3}) failed in"
-                      " transmitfacade()".format(metrics, z_host, z_port, timeout))
+        logging.debug(
+            "event.send_to_zabbix({0},{1},{2},{3}) failed in "
+            "transmitfacade()".format(metrics, z_host, z_port, timeout)
+        )
         return False
     # success
     return True
 
 
-def check(testSet, configinstance, logger):
+# TODO: fill in documentation block below
+def check(test_set, config_instance, logger):
     """
     Perform the checks when called upon by argparse in main()
 
-    :param testSet:
-    :param configinstance:
+    :param test_set:
+    :param config_instance:
     :param logger:
     :return: tuple (statcode, check)
     """
 
-    testset = configinstance.get_test_set(testSet)
+    testset = config_instance.get_test_set(test_set)
 
-    config = configinstance.load()
+    config = config_instance.load()
     webinstance = commons.WebCaller(logger)
 
     # Make a request and check a resource
-    response = webfacade(testSet, configinstance, webinstance, config)
+    # TODO: did webfacade get renamed?
+    response = webfacade(test_set, config_instance, webinstance, config)
     if not response:
         return (1, None)  # caught request exception!
 
@@ -129,8 +146,8 @@ def check(testSet, configinstance, logger):
 
     # For each testElement do our path check and capture results
 
-    for check in testSet['data']['testElements']:
-        if not configinstance.datatypes_valid(check):
+    for check in test_set['data']['testElements']:
+        if not config_instance.datatypes_valid(check):
             return (1, check)
 
         try:
@@ -142,7 +159,7 @@ def check(testSet, configinstance, logger):
         # (string,int,count)
         for datatype in datatypes:
             try:
-                api_res_value = commons.omnipath(response.content, testSet[
+                api_res_value = commons.omnipath(response.content, test_set[
                     'data']['response_type'], check)
             except KeyError as err:
                 logging.error("Uncaught unknown error")
@@ -175,7 +192,7 @@ def check(testSet, configinstance, logger):
 
             # There was no value associated for the desired key.
             # This is considered a failing check, as datatype is unsupported
-            if api_res_value == None:
+            if api_res_value is None:
                 logging.warning("{0} check failed check="
                                 "{1}".format(check['originhost'], check))
                 report_bad_health = True
@@ -186,7 +203,7 @@ def check(testSet, configinstance, logger):
 
             # Applies a key format from the configuration file, allowing
             # custom zabbix keys for your items reporting to zabbix. Any
-            # check in testSet can be substituted, the {uri} and
+            # check in test_set can be substituted, the {uri} and
             # Pdatatype} are also made available.
             metrickey = config['config']['zabbix'][
                 'item_key_format'].format(**check)
@@ -197,7 +214,7 @@ def check(testSet, configinstance, logger):
 
     logger.info("Sending telemetry to zabbix server as Metrics objects")
     logger.debug("Telemetry: {0}".format(zabbix_telemetry))
-    if not transmitfacade(configinstance=config, metrics=zabbix_telemetry, logger=logger):
+    if not transmit_facade(config_instance=config, metrics=zabbix_telemetry, logger=logger):
         logger.critical("Sending telemetry to zabbix failed!")
 
     if report_bad_health:
@@ -206,17 +223,18 @@ def check(testSet, configinstance, logger):
         return (0, check)
 
 
-def discover(args, configinstance, logger):
+# TODO: fill in documentation block below
+def discover(args, config_instance, logger):
     """
     Perform the discovery when called upon by argparse in main()
 
     :param args:
-    :param configinstance:
+    :param config_instance:
     :param logger:
     :return:
     """
-    configinstance.load_yaml_file(args.config)
-    config = configinstance.load()
+    config_instance.load_yaml_file(args.config)
+    config = config_instance.load()
 
     discover = True
     if not args.datatype:
@@ -229,19 +247,19 @@ def discover(args, configinstance, logger):
             "       testSet->your_test_name->testElements->datatype->"
             "your_datatype"
             "\n\n".format(
-                configinstance.get_datatypes_list()
+                config_instance.get_datatypes_list()
             )
         )
         discover = False
 
     discovery_dict = {'data': []}
 
-    for testSet in config['checks']:
-        checkname = testSet['key']
+    for test_set in config['checks']:
+        checkname = test_set['key']
 
-        uri = testSet['data']['uri']
+        uri = test_set['data']['uri']
 
-        for discoveryitem in testSet['data']['testElements']:  # For every item
+        for discoveryitem in test_set['data']['testElements']:  # For every item
             datatypes = discoveryitem['datatype'].split(',')
             for datatype in datatypes:  # For each datatype in testElements
                 if datatype == args.datatype:  # Only add if datatype relevant

@@ -13,7 +13,7 @@ import exception
 from url_monitor import package as packagemacro
 
 
-class baseConfig():
+class BaseConfig(object):
     """
     Base class for ConfigObject
     """
@@ -23,13 +23,14 @@ class baseConfig():
         self.checks = None
         self.constant_syslog_port = 514
 
+    # TODO: fill in documentation block below
     def load_yaml_file(self, config=None):
         """
         Loads a yaml file as a dict
         :param config: yaml file
         :return: dict
         """
-        if config == None:
+        if config is None:
             config = "/etc/url_monitor.yaml"
 
         with open(config, 'r') as stream:
@@ -48,20 +49,24 @@ class baseConfig():
                 'config': self.raw,
                 'identity_providers': self.identity_providers}
 
-    def _load_checks(self, withIdentityProvider=None):
-        """ Loads the checks for work to be run.
-            Default loads all checks, withIdentityProvider option will limit
-            checks returned by identity provider (useful for smart async
-            request grouping)
+    # TODO: fill in documentation block below
+    def _load_checks(self, with_identity_provider=None):
+        """
+        Loads the checks for work to be run.
+        Default loads all checks, withIdentityProvider option will limit
+        checks returned by identity provider (useful for smart async
+        request grouping)
+
+        :param with_identity_provider:
+        :return:
         """
         loaded_checks = []
 
-        if withIdentityProvider:
+        if with_identity_provider:
             # Useful if doing grouping async requests with a identityprovider
             #  and then spawning async call
             for checkdata in self.test_sets:
-                if checkdata['data'][
-                        'identity_provider'].lower() == withIdentityProvider.lower():
+                if checkdata['data']['identity_provider'].lower() == with_identity_provider.lower():
                     # loaded_checks.append({'data': checkdata['data']})
                     loaded_checks.append(checkdata)
 
@@ -70,22 +75,12 @@ class baseConfig():
 
         return loaded_checks
 
-    def _uniq(self, seq):
-        """
-        Returns a unique list when a list of
-        non unique items are put in.
 
-        :return list:
-        """
-        set = {}
-        map(set.__setitem__, seq, [])
-        return set.keys()
-
-
-class configProperties():
+class ConfigProperties(object):
     """
     Contains property methods to help out ConfigObject
     """
+
     @property
     def raw(self):
         """
@@ -101,8 +96,7 @@ class configProperties():
         """
         providers = {}
 
-        for provider_config_alias, v in self.raw[
-                'identity_providers'].iteritems():
+        for provider_config_alias, v in self.raw['identity_providers'].items():
             # Add each provider and config to dictionary from yaml file.
             providers[provider_config_alias] = v
         # Return a list of the config
@@ -264,61 +258,64 @@ class configProperties():
         return skip_conditions
 
 
-class ConfigObject(baseConfig, configProperties):
+class ConfigObject(BaseConfig, ConfigProperties):
     """ This class makes YAML configuration
     available as python datastructure. """
 
-    def get_test_set(self, testSet):
+    # TODO: fill in documentation block below
+    def get_test_set(self, test_set):
         """
-        return specific values of interest from a test set
+        Return specific values of interest from a test set
 
-        :return dict:
+        :param test_set:
+        :return:
         """
         ts = {'data': {}}
         # get uri
         try:
-            ts['data']['uri'] = testSet['data']['uri']
+            ts['data']['uri'] = test_set['data']['uri']
         except KeyError as err:
             # We're missing the uri aren't we?
             error = ("Error: Missing {err} under testSet item {item}, "
-                     "check cannot run.").format(err=err, item=testSet['key'])
+                     "check cannot run.").format(err=err, item=test_set['key'])
             raise Exception("KeyError: " + str(err) + str(error))
 
         # get ok_http_code
         try:
-            ts['data']['ok_http_code'] = testSet['data']['ok_http_code']
+            ts['data']['ok_http_code'] = test_set['data']['ok_http_code']
         except KeyError as err:
             # We're missing the uri aren't we?
             error = ("Error: Missing {err} under testSet item {item}, "
-                     "check cannot run.").format(err=err, item=testSet['key'])
+                     "check cannot run.").format(err=err, item=test_set['key'])
             raise Exception("KeyError: " + str(err) + str(error))
 
         # get identity_provider
         try:
-            ts['data']['identity_provider'] = testSet['data'][
+            ts['data']['identity_provider'] = test_set['data'][
                 'identity_provider']
         except KeyError as err:
             # We're missing the uri aren't we?
             error = ("Error: Missing {err} under testSet item {item}, "
-                     "check cannot run.").format(err=err, item=testSet['key'])
+                     "check cannot run.").format(err=err, item=test_set['key'])
             raise Exception("KeyError: " + str(err) + str(error))
 
         return ts
 
-    def get_request_timeout(self, testSet):
+    # TODO: fill in documentation block below
+    def get_request_timeout(self, test_set):
         """
         Getter to return a requests.timeout setting.
 
         Grab local the testSet request timeout else
         defer to global setting.
 
-        :param testSet:   name of the current testset
+        :param test_set:   name of the current testset
         :return integer:  for requests.timeout
         """
         config = self.load()
         defined = False
         try:
-            timeout = int(testSet['data']['request_timeout'])
+            timeout = int(test_set['data']['request_timeout'])
             defined = True
         except KeyError, err:
             err = err
@@ -339,32 +336,35 @@ class ConfigObject(baseConfig, configProperties):
         else:
             return timeout
 
-    def get_verify_ssl(self, testSet):
+    # TODO: fill in documentation block below
+    def get_verify_ssl(self, test_set):
         """
         Getter bool around require SSL within requests lib.
 
-        :param testSet:   name of the current testset
+        :param test_set:   name of the current testset
         :return bool:
         """
         config = self.load()
         # SSL validation
         defined = False
         try:  # Use SSL local security (if available)
-            require_ssl = commons.string2bool(testSet['data'][
-                'request_verify_ssl'])
+            require_ssl = commons.string_to_bool(
+                test_set['data']['request_verify_ssl']
+            )
             defined = True
         except:
             pass
 
         try:  # Try global setting, else require_ssl=True
             if not defined:
-                require_ssl = commons.string2bool(
+                require_ssl = commons.string_to_bool(
                     config['config']['request_verify_ssl'])
         except:
             require_ssl = True  # No setting, secure by default.
 
         return require_ssl
 
+    # TODO: fill in documentation block below
     def datatypes_valid(self, check):
         """
         Lints datatypes out of the config file.
@@ -372,43 +372,44 @@ class ConfigObject(baseConfig, configProperties):
         Return true if datatypes ok,
         false if warnings occured.
 
-        :return str:
+        :param check:
+        :return:
         """
 
         exception_string = (
-            "Error: Missing {error} under testSet item {test_set}, "
+            "Error: Missing {error} under test_set item {test_set}, "
             "check has been skipped."
         )
-        for testSet in self._load_checks():
-            checkname = testSet['key']
+        for test_set in self._load_checks():
+            checkname = test_set['key']
             if checkname == check:
                 try:
-                    uri = testSet['data']['uri']
+                    uri = test_set['data']['uri']
                 except KeyError as err:
                     error = exception_string.format(
                         error=err,
-                        test_set=testSet['key']
+                        test_set=test_set['key']
                     )
                     logging.error("KeyError: " + str(err) + str(error))
                     return False
 
                 try:
-                    testSet['data']['testElements']
+                    test_set['data']['testElements']
                 except KeyError as err:
                     error = exception_string.format(
                         error=err,
-                        test_set=testSet['key']
+                        test_set=test_set['key']
                     )
                     logging.error("KeyError: " + str(err) + str(error))
                     return False
 
-                for element in testSet['data']['testElements']:  # for every element
+                for element in test_set['data']['testElements']:  # for every element
                     try:
                         datatypes = element['datatype'].split(',')
                     except KeyError as err:
                         error = exception_string.format(
                             error=err,
-                            test_set=testSet['key']
+                            test_set=test_set['key']
                         )
                         logging.error("KeyError: " + str(err) + str(error))
                         return False
@@ -418,7 +419,7 @@ class ConfigObject(baseConfig, configProperties):
                     except KeyError as err:
                         error = exception_string.format(
                             error=err,
-                            test_set=testSet['key']
+                            test_set=test_set['key']
                         )
                         logging.error("KeyError: " + str(err) + str(error))
                         return False
@@ -428,13 +429,14 @@ class ConfigObject(baseConfig, configProperties):
                     except KeyError as err:
                         error = exception_string.format(
                             error=err,
-                            test_set=testSet['key']
+                            test_set=test_set['key']
                         )
                         logging.error("KeyError: " + str(err) + str(error))
                         return False
 
         return True
 
+    # TODO: fill in documentation block below
     def get_datatypes_list(self):
         """
         Used by the discover command to identify a list of valid datatypes
@@ -442,64 +444,68 @@ class ConfigObject(baseConfig, configProperties):
         :return str:
         """
         exception_string = (
-            "Error: Missing {error} under testSet item {test_set}, "
+            "Error: Missing {error} under test_set item {test_set}, "
             "discover cannot run."
         )
 
-        possible_datatypes = []
-        for testSet in self._load_checks():
-            checkname = testSet['key']
+        possible_datatypes = {}
+        for test_set in self._load_checks():
+            checkname = test_set['key']
             try:
-                uri = testSet['data']['uri']
+                uri = test_set['data']['uri']
             except KeyError as err:
                 error = exception_string.format(
                     error=err,
-                    test_set=testSet['key']
+                    test_set=test_set['key']
                 )
                 raise Exception("KeyError: " + str(err) + str(error))
                 return 1
 
             try:
-                testSet['data']['testElements']
+                test_set['data']['testElements']
             except KeyError as err:
                 error = exception_string.format(
                     error=err,
-                    test_set=testSet['key']
+                    test_set=test_set['key']
                 )
                 logging.error("KeyError: " + str(err) + str(error))
                 return 1
 
-            for element in testSet['data']['testElements']:  # for every element
+            for element in test_set['data']['testElements']:  # for every element
                 try:
                     datatypes = element['datatype'].split(',')
                 except KeyError as err:
                     error = exception_string.format(
                         error=err,
-                        test_set=testSet['key']
+                        test_set=test_set['key']
                     )
                     raise Exception("KeyError: " + str(err) + str(error))
                     return 1
                 for datatype in datatypes:
-                    possible_datatypes.append(datatype)
+                    possible_datatypes.add(datatype)
 
-        return str(self._uniq(possible_datatypes))
+        return str(possible_datatypes)
 
+    # TODO: fill in documentation block below
     def get_log_level(self, debug_level=None):
         """
         Allow user-configurable log-leveling
+
+        :param debug_level:
+        :return:
         """
         try:
-            if debug_level == None:
+            if debug_level is None:
                 debug_level = self.config['config']['logging']['level']
         except KeyError as err:
             print("Error: Missing {key} in config under config: loglevel.\n"
                   "Try config: loglevel: Exceptions".format(
-                      key=err)
-                  )
+                key=err)
+            )
             print("1")
             exit(1)
         if (debug_level.lower().startswith('err') or
-            debug_level.lower().startswith('exc')
+                debug_level.lower().startswith('exc')
             ):
             return logging.ERROR
         elif debug_level.lower().startswith('crit'):
@@ -513,6 +519,7 @@ class ConfigObject(baseConfig, configProperties):
         else:
             return logging.ERROR
 
+    # TODO: fill in documentation block below
     def get_logger(self, loglevel):
         """
         Returns a logger instance, used throughout codebase.
@@ -702,7 +709,7 @@ class ConfigObject(baseConfig, configProperties):
         for provider in self.identity_providers:
             provider
             for module, kwargs in self.config['config'][
-                    'identity_providers'][provider].iteritems():
+                'identity_providers'][provider].iteritems():
                 module.split('/')
                 for kwarg in kwargs:
                     kwarg
