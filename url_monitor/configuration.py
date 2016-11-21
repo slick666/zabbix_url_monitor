@@ -2,13 +2,13 @@
 # -*- coding: utf-8 -*-
 import logging
 import logging.handlers
+import logging.handlers
 import socket
+import sys
 
 import yaml
-import sys
-import logging.handlers
-import commons
 
+import commons
 import exception
 from url_monitor import package as packagemacro
 

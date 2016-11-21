@@ -1,27 +1,21 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 from __future__ import print_function
-import lockfile
+
 import argparse
-import json
 import logging
-import os
 import sys
-import textwrap
-from exception import PidlockConflict
+
+import lockfile
 
 import action
 import commons
 import configuration
-
-import zbxsend as event
-from zbxsend import Metric
-
 from url_monitor import authors as authorsmacro
-from url_monitor import description as descriptionmacro
 from url_monitor import authors as emailsmacro
+from url_monitor import description as descriptionmacro
 from url_monitor import project as projectmacro
-
+from zbxsend import Metric
 
 __doc__ = """Program entry point / arg handling / check passfail review"""
 

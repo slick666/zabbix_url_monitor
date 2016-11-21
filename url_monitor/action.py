@@ -1,13 +1,10 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import logging
-
-import commons
-import sys
 import json
-import requests
+import logging
 from urlparse import urlparse
 
+import commons
 import zbxsend
 
 __doc__ = """Action on backends after entry points are handled in main"""

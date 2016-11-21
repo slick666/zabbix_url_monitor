@@ -1,14 +1,14 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-from facter import Facter
+import subprocess
+from os import environ
+
 import requests
+from facter import Facter
 from requests.auth import HTTPBasicAuth
 from requests.auth import HTTPDigestAuth
 from requests_oauthlib import OAuth1
-import os.path
-from os import environ
-import subprocess
 
 from jpath import jpath
 
